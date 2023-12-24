@@ -66,8 +66,21 @@ class API():
     def GetMoney(self, value):
         self.w3.geth.personal.unlock_account(self.current_user, self.password, 0)
         self.w3.geth.miner.start()
-        check = self.sc.functions.GetMoney().transact({"from": self.current_user, "value": value})    # здесь нужна логика выгрузки денег на счёт пользователю из контракта
-        self.w3.eth.wait_for_transaction_receipt(check)
+        # Используйте функцию withdraw контракта для вывода средств
+        withdrawal_transaction = self.sc.functions.withdraw(value).buildTransaction({
+            'from': self.current_user,
+            'gas': 2000000,
+            'gasPrice': self.w3.toWei('50', 'gwei'),
+            'nonce': self.w3.eth.getTransactionCount(self.current_user),
+            'chainId': 69
+        })
+        # Подпись транзакции
+        signed_transaction = self.w3.eth.account.signTransaction(withdrawal_transaction, self.password)
+        # Отправка транзакции
+        tx_hash = self.w3.eth.sendRawTransaction(signed_transaction.rawTransaction)
+
+        # Ожидание подтверждения транзакции (опционально)
+        self.w3.eth.waitForTransactionReceipt(tx_hash)
         self.w3.geth.miner.stop()
 
     def GetTableInfo(self, table_num):
