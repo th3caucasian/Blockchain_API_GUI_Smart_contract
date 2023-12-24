@@ -76,7 +76,7 @@ class API():
 
         # Используйте функцию withdraw контракта для вывода средств
         withdrawal_transaction = self.sc.functions.GetMoney.transact({
-            'from': self.current_user,
+            'from': self.sc,
             'value': value,
             'nonce': self.w3.eth.get_transaction_count(self.current_user),
         })

@@ -4,6 +4,10 @@ import sys
 from Guest import Ui_GuestWindow
 from API import API
 
+# TODO:
+# сделать обработку того что гость уходит и в окне админа обнуляется значение стола
+# сделать оплату из контракта на счёт пользователя
+
 class GuestLK(QtWidgets.QMainWindow):
     def __init__(self, parent = None):
         QtWidgets.QWidget.__init__(self)
