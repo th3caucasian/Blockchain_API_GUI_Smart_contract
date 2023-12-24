@@ -8,7 +8,7 @@ class API():
 
         with open("./ABI.txt", "r") as f:
             abi = json.loads(f.read())
-        contract_address = web3.Web3.to_checksum_address("0x7B5749E25f43525CAe0cc5b1F1962936cc44169a")
+        contract_address = web3.Web3.to_checksum_address("0x363E4C25c68292A6d3DaF404db04bc9ebB1658BB")
         self.sc = self.w3.eth.contract(address = contract_address, abi = abi)
 
         self.current_user = current_user
@@ -27,6 +27,9 @@ class API():
 
     def admin(self):
         return self.sc.functions.admin().call()
+
+    def last_gotten_table(self):
+        return self.sc.functions.last_gotten_table().call()
 
     def AddOrder(self, table_num: int, dish_name: str, dish_price: int):
         self.w3.geth.personal.unlock_account(self.current_user, self.password, 0)
@@ -48,6 +51,7 @@ class API():
         table = self.sc.functions.GetATable().transact({"from": self.current_user})
         self.w3.eth.wait_for_transaction_receipt(table)
         self.w3.geth.miner.stop()
+        return table
 
     def MakeCheck(self, table_num):
         self.w3.geth.personal.unlock_account(self.current_user, self.password, 0)
@@ -59,26 +63,28 @@ class API():
     def PayNLeave(self, table_num, value):
         self.w3.geth.personal.unlock_account(self.current_user, self.password, 0)
         self.w3.geth.miner.start()
-        order = self.sc.functions.PayNLeave(table_num).transact({"from": self.current_user, "value": value})
-        self.w3.eth.wait_for_transaction_receipt(order)
+        tx = self.sc.functions.PayNLeave(table_num).transact({
+            "from": self.current_user,
+            "value": value
+        })
+        self.w3.eth.wait_for_transaction_receipt(tx)
         self.w3.geth.miner.stop()
 
     def GetMoney(self, value):
         self.w3.geth.personal.unlock_account(self.current_user, self.password, 0)
         self.w3.geth.miner.start()
+
         # Используйте функцию withdraw контракта для вывода средств
-        withdrawal_transaction = self.sc.functions.withdraw(value).buildTransaction({
+        withdrawal_transaction = self.sc.functions.GetMoney.transact({
             'from': self.current_user,
-            'gas': 2000000,
-            'gasPrice': self.w3.toWei('50', 'gwei'),
-            'nonce': self.w3.eth.getTransactionCount(self.current_user),
-            'chainId': 69
+            'value': value,
+            'nonce': self.w3.eth.get_transaction_count(self.current_user),
         })
         # Подпись транзакции
         signed_transaction = self.w3.eth.account.signTransaction(withdrawal_transaction, self.password)
         # Отправка транзакции
-        tx_hash = self.w3.eth.sendRawTransaction(signed_transaction.rawTransaction)
-
+        tx_hash = self.w3.eth.send_raw_transaction(signed_transaction.rawTransaction)
+        print(f"Withdrawal Transaction Hash: {tx_hash}")
         # Ожидание подтверждения транзакции (опционально)
         self.w3.eth.waitForTransactionReceipt(tx_hash)
         self.w3.geth.miner.stop()
@@ -105,9 +111,10 @@ class API():
 
 
 if __name__ == '__main__':
-    api = API('0xCae62C21d7A26B3c7057714BEa4111f4376B1f99', '0')
+    api = API('0xCae62C21d7A26B3c7057714BEa4111f4376B1f99', '1')
     print(api.retorders())
-    api.OrderIsReady()
+    api.GetATable()
+    print(api.last_gotten_table())
     print(api.retorders())
 
 

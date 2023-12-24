@@ -2,6 +2,7 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 import sys
 from Auth import Ui_MainWindow
 from adminLK import AdminLK
+from guestLK import GuestLK
 from API import API
 
 class Auth(QtWidgets.QMainWindow):
@@ -21,6 +22,11 @@ class Auth(QtWidgets.QMainWindow):
                 self.open = AdminLK()
                 self.open.set_api(address, password)
                 self.open.redraw()
+                self.open.show()
+            else:
+                self.open = GuestLK()
+                self.open.set_api(address, password)
+                self.open.draw()
                 self.open.show()
             self.close()
         except:

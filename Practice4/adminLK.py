@@ -47,14 +47,19 @@ class AdminLK(QtWidgets.QMainWindow):
             self.errorMsg.showMessage('Проверьте корректность введённых данных!')
 
     def order_ready(self):
-        self.orders_list = self.api.retorders()
-        self.orders_count = len(self.orders_list)
-        self.api.OrderIsReady()
-        table_num = int(self.orders_list[self.orders_count-1][4])
-        self.checks[table_num] += self.orders_list[self.orders_count-1][1]
-        self.ui.tableWidget.setItem(table_num, 1, QtWidgets.QTableWidgetItem(str(self.checks[table_num])))  # это надо добавить в кнопку Заказ готов
-        self.ui.tableWidget.item(table_num, 1).setTextAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
-        self.redraw()
+        try:
+            self.orders_list = self.api.retorders()
+            self.orders_count = len(self.orders_list)
+            self.api.OrderIsReady()
+            table_num = int(self.orders_list[self.orders_count-1][4])
+            self.checks[table_num] += self.orders_list[self.orders_count-1][1]
+            self.ui.tableWidget.setItem(table_num, 1, QtWidgets.QTableWidgetItem(str(self.checks[table_num])))  # это надо добавить в кнопку Заказ готов
+            self.ui.tableWidget.item(table_num, 1).setTextAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignHCenter)
+            self.redraw()
+        except:
+            self.errorMsg = QtWidgets.QErrorMessage()
+            self.errorMsg.setWindowTitle('Возникла ошибка')
+            self.errorMsg.showMessage('Заказов больше нет!')
 
 
 
